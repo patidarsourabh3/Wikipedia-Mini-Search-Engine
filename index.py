@@ -7,13 +7,15 @@ from collections import defaultdict, OrderedDict
 
 word_dict = defaultdict(dict)
 title_list = ""
+tf_list = ""
 doc = 0
 total_tokens = 0
 title_doc_size = 10000
 unique_words = set()
-dict_size = 50000
+dict_size = 10000
 total_tokens = 0
 path = ""
+s = 0
 
 def write_title(title_list):
 	global doc,title_doc_size, path
@@ -24,43 +26,51 @@ def write_title(title_list):
 	f.write(title_list)
 	f.close()
 
+def write_tf(tf_list):
+	global doc,title_doc_size, path
+	if doc%title_doc_size==0:
+		f = open(path+"/tf/tf"+str(doc//title_doc_size)+".txt", 'w')
+	else:
+		f = open(path+"/tf/tf"+str((doc//title_doc_size)+1)+".txt", 'w')
+	f.write(tf_list)
+	f.close()
 
 def makeIndex(title, body, references, categories, links, infobox):
     
     global word_dict, doc
     for i in title:
         if not (i in word_dict and doc in word_dict[i]):
-        	word_dict[i][doc] = [0,0,0,0,0,0]
+        	word_dict[i][doc] = [1,0,0,0,0,0]
         else:
         	word_dict[i][doc][0] += 1
             
     for i in body:
         if not (i in word_dict and doc in word_dict[i]):
-        	word_dict[i][doc] = [0,0,0,0,0,0]
+        	word_dict[i][doc] = [0,1,0,0,0,0]
         else:
         	word_dict[i][doc][1] += 1
 
     for i in references:
         if not (i in word_dict and doc in word_dict[i]):
-        	word_dict[i][doc] = [0,0,0,0,0,0]
+        	word_dict[i][doc] = [0,0,1,0,0,0]
         else:
         	word_dict[i][doc][2] += 1
 
     for i in categories:
         if not (i in word_dict and doc in word_dict[i]):
-        	word_dict[i][doc] = [0,0,0,0,0,0]
+        	word_dict[i][doc] = [0,0,0,1,0,0]
         else:
         	word_dict[i][doc][3] += 1
 
     for i in links:
         if not (i in word_dict and doc in word_dict[i]):
-        	word_dict[i][doc] = [0,0,0,0,0,0]
+        	word_dict[i][doc] = [0,0,0,0,1,0]
         else:
         	word_dict[i][doc][4] += 1
     
     for i in infobox:
         if not (i in word_dict and doc in word_dict[i]):
-        	word_dict[i][doc] = [0,0,0,0,0,0]
+        	word_dict[i][doc] = [0,0,0,0,0,1]
         else:
         	word_dict[i][doc][5] += 1
 
@@ -118,7 +128,7 @@ class WikiHandler(xml.sax.ContentHandler):
 			self.text += content
 
 	def endElement(self, tag):
-		global title_list, doc, total_tokens, unique_words
+		global title_list, tf_list, doc, total_tokens, unique_words, s
 		if tag=="title":
 			self.title_flag = 0
 			title_list += self.title + "\n"
@@ -134,7 +144,10 @@ class WikiHandler(xml.sax.ContentHandler):
 			total_tokens += len(infobox)
 			total_tokens += len(references)
 			total_tokens += len(categories)
+			doc_freq = len(title) + len(body) + len(links) + len(infobox) + len(references) + len(categories)
+			tf_list += str(doc_freq) + "\n"
 
+			# fi.write(str(doc_freq)+"\n")
 			unique_words.update(title)
 			unique_words.update(body)
 			unique_words.update(links)
@@ -143,8 +156,13 @@ class WikiHandler(xml.sax.ContentHandler):
 			unique_words.update(categories)
 
 			if doc%title_doc_size == 0:
+				# print(time.time()-s)
+				print(doc ," docs done : ", time.time()-s , " seconds")
+				# s = time.time()
 				write_title(title_list)
+				write_tf(tf_list)
 				title_list = ""
+				tf_list = ""
 			
 
 if __name__ == "__main__" :
@@ -161,7 +179,13 @@ if __name__ == "__main__" :
 	if not os.path.exists(path_inverted_index+"/title"):
 		os.makedirs(path_inverted_index+"/title")
 
+	if not os.path.exists(path_inverted_index+"/tf"):
+		os.makedirs(path_inverted_index+"/tf")
+
+
+
 	start = time.time()
+	s = start
 	parser = xml.sax.make_parser()
 	parser.setFeature(xml.sax.handler.feature_namespaces, 0)
 	
@@ -169,10 +193,14 @@ if __name__ == "__main__" :
 	parser.setContentHandler( Handler )
 	parser.parse(path_dump)
 	write_title(title_list)
+	write_tf(tf_list)
 	createIndex()
 
 	end = time.time()
 	print("Time taken for indexing : ", end-start, " seconds")
+	# fi.close()
+	print("Total tokens : " , total_tokens)
+	print("Total unique tokens : ", len(unique_words))
 	f = open(stat_file, 'w')
 	f.write(str(total_tokens)+"\n"+ str(len(unique_words)))
 	f.close()

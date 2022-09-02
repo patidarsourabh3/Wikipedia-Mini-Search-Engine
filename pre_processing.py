@@ -16,8 +16,10 @@ stemmer = Stemmer('porter')
 def tokenize(text):
     text = re.split(r'[^A-Za-z0-9]+', text)
     tokens = []
+    print(stop_words)
     for line in text:
         word = stemmer.stemWord(line)
+        print(word)
         if len(word) > 1 and len(word) < 15 and word not in stop_words:
             tokens.append(word)
     return tokens
