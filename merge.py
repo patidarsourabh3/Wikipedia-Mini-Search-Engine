@@ -50,7 +50,6 @@ def mergeFiles(file1, file2, res):
 
 dir_list = os.listdir(path)
 s = time.time()
-# dir_list.sort()
 total_files = len(dir_list)
 while total_files !=1:
     if total_files % 2==0:
@@ -63,23 +62,3 @@ while total_files !=1:
     dir_list = os.listdir(path)
     total_files = len(dir_list)
     print("Files remaining : " , total_files)
-
-
-# fname = 1
-# while len(dir_list) != 1:
-#     if len(dir_list)%2 ==0 :
-#         for i in range(0,len(dir_list),2):
-#             mergeFiles(path+dir_list[i], path+dir_list[i+1], path+str(fname)+"_"+str(i//2)+".txt")
-#     else:
-#         for i in range(0,len(dir_list)-1,2):
-#             mergeFiles(path+dir_list[i], path+dir_list[i+1], path+str(fname)+"_"+str(i//2)+".txt")
-#         os.rename(path+dir_list[len(dir_list)-1],path+str(fname)+"_"+str(len(dir_list)//2)+".txt")
-#     fname = fname + 1
-#     dir_list = os.listdir(path)
-#     dir_list.sort()
-
-# print("Total time taken in merging : ", time.time()-start," seconds")
-# # totfiles = split.fileSplit()
-
-# # print("Total number of files are : ", totfiles)
-# # print("Total time taken : ", time.time()-start," seconds")

@@ -1,10 +1,11 @@
 import time
 from collections import defaultdict
 import re
+import sys
 from Stemmer import Stemmer
 stemmer = Stemmer('porter')
 stop_words = defaultdict()
-
+path = "/home/patidar/"
 
 def stopwords_dict():
     global stop_words
@@ -152,7 +153,6 @@ def normal_query(query):
     for i in range(1, len(sets)):
         final_set = final_set.intersection(sets[i])
 
-    # print(final_set)
     score_dict = {}
     for i in range(len(query)):
         for j in final_set:
@@ -162,9 +162,9 @@ def normal_query(query):
                 else:
                     score_dict[j] = l[query[i]][j]
 
-    a = sorted(score_dict.items(), key=lambda x: x[1], reverse=True)
+    ans = sorted(score_dict.items(), key=lambda x: x[1], reverse=True)
     
-    return a
+    return ans
 
 
 def field_query(query):
@@ -214,20 +214,20 @@ def field_query(query):
                 else:
                     score_dict[j] = l[v[i]][j]
 
-    a = sorted(score_dict.items(), key=lambda x: x[1], reverse=True)
-    return a
+    ans = sorted(score_dict.items(), key=lambda x: x[1], reverse=True)
+    return ans
     
 
 if __name__ == '__main__':
-    path = "/home/patidar/" 
+    query_file = sys.argv[1] 
     stopwords_dict()
     sec = open(path+"/temp/secondary_index.txt",'r')
     secondary_query_list = []
     for i in sec.readlines():
         secondary_query_list.append(i.strip("\n"))
     sec.close()
-    queries = open('/home/patidar/queries.txt','r')
-    ans_file = open('/home/patidar/ans.txt','w')
+    queries = open(path+query_file,'r')
+    ans_file = open(path+"queries_op.txt",'w')
     for query in queries.readlines():
         start = time.time()
         query = query.lower()
@@ -237,7 +237,7 @@ if __name__ == '__main__':
             ans = normal_query(query)
         c = 0
         for i in ans:
-            ans_file.write(str(i[0])+", "+get_doc_name(i[0]))
+            ans_file.write(str(i[0])+", "+get_doc_name(i[0]).lower())
             c+=1
             if c==10:
                 break
